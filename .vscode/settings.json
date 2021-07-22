@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "c:\\Python27\\python.exe",
+    "python.analysis.extraPaths": [
+        "./eeg/preprocessing/notebooks"
+    ]
+}
