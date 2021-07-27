@@ -108,7 +108,7 @@ def generate_beat_events(trial_events,                  # base events as stored 
             print('Trial start at {}'.format(trial_start))
 
         if condition < 3: # cued
-            print("This is the length of the cue: ", meta[stimulus_id]["length_with_cue"])
+            print("This is the length of the cue: ", meta[str(stimulus_id)]['length_of_cue']
             offset = sr * meta[stimulus_id]['length_of_cue']
 
             if include_cue_beats:

@@ -13,7 +13,7 @@ from constants import STIMULUS_IDS
 DEFAULT_VERSION = 1
 
 def get_data_root(): 
-    path = "C:/Users/ahnaa/tks/openmiir/eeg/preprocessing/notebooks"
+    path = "C:/Users/ahnaa/tks/create/eeg/preprocessing/notebooks"
 
     return path
 
