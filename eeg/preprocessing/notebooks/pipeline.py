@@ -156,7 +156,7 @@ def fix_channel_infos(mne_data_filepath, verbose=True):
     return raw
 
 def get_data_root(): 
-    path = "C:/Users/ahnaa/tks/openmiir/eeg/preprocessing/notebooks"
+    path = "C:/Users/ahnaa/tks/create/eeg/preprocessing/notebooks"
 
     return path
 
