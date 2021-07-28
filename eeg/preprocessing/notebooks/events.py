@@ -24,6 +24,7 @@ def decode_event_id(event_id):
     if event_id < 1000:
         stimulus_id = event_id / 10
         condition = event_id % 10
+        print(f"stimulus id: {stimulus_id}")
         return stimulus_id, condition
     else:
         return event_id
@@ -45,7 +46,6 @@ def generate_beat_events(trial_events,                  # base events as stored 
                          exclude_condition_ids=[],
                          beat_event_id_generator=default_beat_event_id_generator,
                          sr=512.0,                      # sample rate, correct value important to compute event frames
-                         verbose=False,
                          version=None):
 
     ## prepare return value
@@ -53,7 +53,7 @@ def generate_beat_events(trial_events,                  # base events as stored 
 
     ## get stimuli meta information
     meta = load_stimuli_metadata_map(version=version)
-    beats = load_stimuli_metadata_map('beats', verbose=verbose, version=version)
+    beats = load_stimuli_metadata_map('beats', version=version)
 
     if include_cue_beats:
         cue_beats = load_stimuli_metadata_map('cue_beats')
@@ -63,16 +63,12 @@ def generate_beat_events(trial_events,                  # base events as stored 
         for stimulus_id in STIMULUS_IDS:
             num_cue_beats[stimulus_id] = \
                 meta[stimulus_id]['beats_per_bar'] * meta[stimulus_id]['cue_bars']
-        if verbose:
-            print (num_cue_beats)
 
 
     ## helper function to add a single beat event
     def add_beat_event(etime, stimulus_id, condition, beat_count, cue=False):
         etype = beat_event_id_generator(stimulus_id, condition, cue, beat_count)
-        beat_events.append([etime, 0, etype])
-        if verbose:
-            print(beat_events[-1])
+        beat_events.append([etime, 0, etype]))
 
     ## helper function to add a batch of beat events
     def add_beat_events(etimes, stimulus_id, condition, cue=False):
@@ -86,13 +82,13 @@ def generate_beat_events(trial_events,                  # base events as stored 
         etype = event[2]
         etime = event[0]
 
-        if verbose:
-            print('{:4d} at {:8d}'.format(etype, etime))
 
         if etype >= 1000: # stimulus_id + condition
             continue
 
         stimulus_id, condition = decode_event_id(etype)
+        print(f"condition {condition}")
+        print(f"stimulus id {stimulus_id}")
 
         if stimulus_id in exclude_stimulus_ids or condition in exclude_condition_ids:
             continue  # skip excluded
@@ -104,27 +100,23 @@ def generate_beat_events(trial_events,                  # base events as stored 
             if next_event[2] == 1000: # only use if audio onset
                 trial_start = next_event[0]
 
-        if verbose:
-            print('Trial start at {}'.format(trial_start))
-
         if condition < 3: # cued
-            print("This is the length of the cue: ", meta[str(stimulus_id)]['length_of_cue']
+            stimulus_id = 1
+            print(f"This is the length of the cue: " + meta[stimulus_id]["length_with_cue"])
             offset = sr * meta[stimulus_id]['length_of_cue']
 
             if include_cue_beats:
                 cue_beat_times = trial_start + np.floor(sr * cue_beats[stimulus_id])
                 cue_beat_times = cue_beat_times[:num_cue_beats[stimulus_id]]  # truncate at num_cue_beats
-                cue_beat_times = np.asarray(cue_beat_times, dtype=int)
-                if verbose:
-                    print(cue_beat_times)
+                cue_beat_times = np.asarray(cue_beat_times, dtype=float)
+    
                 add_beat_events(cue_beat_times, stimulus_id, condition, cue=True)
         else:
             offset = 0 # no cue
 
         beat_times = trial_start + offset + np.floor(sr * beats[stimulus_id])
         beat_times = np.asarray(beat_times, dtype=int)
-        if verbose:
-            print(beat_times[:5], '...')
+
         add_beat_events(beat_times, stimulus_id, condition)
 
     beat_events = np.asarray(beat_events, dtype=int)

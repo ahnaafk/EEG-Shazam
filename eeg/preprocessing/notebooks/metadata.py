@@ -69,24 +69,24 @@ def load_stimuli_metadata(data_root=None, version=None, verbose=None):
             'label' : sheet.cell(i,1).value.encode('ascii'),
             'audio_file' : sheet.cell(i,2).value.encode('ascii'),
             'cue_file' : sheet.cell(i,2).value.replace('.wav', '_cue.wav').encode('ascii'),
-            'length_with_cue' : sheet.cell(i,3).value,
+            'length_with_cue' : float(sheet.cell(i,3).value),
             'length_of_cue' : sheet.cell(i,4).value,
             'length_without_cue' : sheet.cell(i,5).value,
             'length_of_cue_only' : sheet.cell(i,6).value,
             'cue_bpm' : int(sheet.cell(i,7).value),
             'beats_per_bar' : int(sheet.cell(i,8).value),
-            'num_bars' : int(sheet.cell(i,14).value),
-            'cue_bars' : int(sheet.cell(i,15).value),
+            'num_bars' : float(sheet.cell(i,14).value),
+            'cue_bars' : float(sheet.cell(i,15).value),
             'bpm' : int(sheet.cell(i,16).value),
             'approx_bar_length' : sheet.cell(i,11).value,
         }
 
         if version == 2:
             meta[stimulus_id]['bpm'] = meta[stimulus_id]['cue_bpm'] # use cue bpm
-    #print(meta)
+        print("this is the metadata thing", meta[stimulus_id])
     return meta
     
-
+load_stimuli_metadata()
 
 def save_beat_times(beats, stimulus_id, cue=False, data_root=None, offset=None, overwrite=False, version=None):
 
