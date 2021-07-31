@@ -21,8 +21,14 @@ from events import merge_trial_and_audio_onsets, generate_beat_events, simple_be
 from viz import plot_ica_overlay_evoked
 from resample import fast_resample_mne
 
-RAW_EOG_CHANNELS = [u'EXG1', u'EXG2', u'EXG3', u'EXG4']
-MASTOID_CHANNELS = [u'EXG5', u'EXG6']
+RAW_EOG_CHANNELS = ['EXG1', 'EXG2', 'EXG3', 'EXG4']
+MASTOID_CHANNELS = ['EXG5', 'EXG6']
+
+def get_data_root(): 
+    path = "/Users/ahnaaf/Documents/tks/EEG-Shazam/eeg/preprocessing/notebooks"
+
+    return path
+
 
 def load_raw_info(subject,
              mne_data_root=None,
@@ -30,8 +36,7 @@ def load_raw_info(subject,
 
     if mne_data_root is None:
         # use default data root
-        import deepthought
-        data_root = os.path.join(deepthought.DATA_PATH, 'OpenMIIR')
+        data_root = get_data_root()
         mne_data_root = os.path.join(data_root, 'mne')
 
     mne_data_filepath = os.path.join(mne_data_root, '{}-raw.fif'.format(subject))
@@ -120,9 +125,8 @@ def interpolate_bad_channels(inst):
 def load_ica(subject, description, ica_data_root=None):
     if ica_data_root is None:
         # use default data root
-        import deepthought
-        data_root = os.path.join(deepthought.DATA_PATH, 'OpenMIIR')
-        ica_data_root = os.path.join(data_root, 'eeg', 'preprocessing', 'ica')
+        data_root = get_data_root()
+        ica_data_root = os.path.join(data_root, 'ica')
 
     ica_filepath = os.path.join(ica_data_root,
                                 '{}-{}-ica.fif'.format(subject, description))
@@ -155,10 +159,7 @@ def fix_channel_infos(mne_data_filepath, verbose=True):
 
     return raw
 
-def get_data_root(): 
-    path = "C:/Users/ahnaa/tks/create/eeg/preprocessing/notebooks"
 
-    return path
 
 
 
@@ -234,7 +235,7 @@ class Pipeline(object):
 
 
     def print_bad_channels(self):
-        print('bad channels:', self.raw.info['bads'])
+        print(('bad channels:', self.raw.info['bads']))
 
     def reset_bad_channels(self):
         self.raw.info['bads'] = []
@@ -259,7 +260,7 @@ class Pipeline(object):
 
         self.raw.info['bads'] = bads
 
-        print('The following channels have been marked as bad:', self.raw.info['bads'])
+        print(('The following channels have been marked as bad:', self.raw.info['bads']))
 
         if save_to_raw:
             # raw needs to be reloaded for this with the mastoid channels still present
@@ -298,8 +299,8 @@ class Pipeline(object):
         plt.figure(figsize=(17,10))
         axes = plt.gca()
         mne.viz.plot_events(trial_events, raw.info['sfreq'], raw.first_samp, axes=axes)
-        print('1st event at ', raw.times[trial_events[0,0]])
-        print('last event at ', raw.times[trial_events[-1,0]])
+        print(('1st event at ', raw.times[trial_events[0,0]]))
+        print(('last event at ', raw.times[trial_events[-1,0]]))
         trial_event_times = raw.times[trial_events[:,0]]
 
         self.trial_events = trial_events
@@ -391,9 +392,15 @@ class Pipeline(object):
 
         ## have a look at 1st channel
         channel = raw[ch_num,:][0].squeeze()
-        print(channel.shape)
+        print((channel.shape))
         plt.figure(figsize=(17,4))
         plt.plot(channel)
+
+    def time_frequency_plot(self):
+        raw = self.raw
+        info = raw.info 
+
+        mne.time_frequency.AverageTFR(info, raw, 1800)
 
 
     ###################### bandpass filtering - this will change raw ######################
@@ -412,7 +419,7 @@ class Pipeline(object):
 
     ## generate events epochs after bandpass !
 
-    def generate_beat_events(self, verbose=None):
+    def generate_beat_events(self):
 
         assert self.filtered is True
         assert self.downsampled is False
@@ -429,8 +436,7 @@ class Pipeline(object):
         # generate simple beat events with same ID (10000)
         beat_events = generate_beat_events(trial_events,
                                            version=self.stimuli_version,
-                                           beat_event_id_generator=simple_beat_event_id_generator,
-                                           verbose=verbose)
+                                           beat_event_id_generator=simple_beat_event_id_generator)
 
         # FIXME: read from settings
         picks = mne.pick_types(raw.info, meg=False, eeg=True, eog=True, stim=True, exclude=[])
@@ -532,12 +538,12 @@ class Pipeline(object):
         # print resampled_trial_event_times
 
         diff = resampled_trial_event_times - trial_event_times
-        print ('event onset jitter (min, mean, max):'), diff.min(), diff.mean(), diff.max()
+        print(('event onset jitter (min, mean, max):'), diff.min(), diff.mean(), diff.max())
         diff = np.asarray(diff*1000, dtype=int)
 
         if verbose:
             for i,event in enumerate(resampled_trial_events):
-                print(event, diff[i])
+                print((event, diff[i]))
 
 
 
@@ -626,8 +632,8 @@ class Pipeline(object):
         eog_inds = list(eog_inds_set)
         scores = np.max(np.abs(multi_scores), axis=0).squeeze()
 
-        print('suggested EOG artifact channels: ', eog_inds)
-        print('EOG artifact component scores: ', scores[eog_inds])
+        print(('suggested EOG artifact channels: ', eog_inds))
+        print(('EOG artifact component scores: ', scores[eog_inds]))
 
         self.eog_exclude_inds = eog_inds
         self.eog_exclude_scores = scores
@@ -665,7 +671,7 @@ class Pipeline(object):
         if len(sets) == 1:
             merged = sets[0]
         else:
-            print('merging', sets)
+            print(('merging', sets))
             merged = set()
             for s in sets:
                 for e in s:
@@ -681,7 +687,7 @@ class Pipeline(object):
         scores = self.eog_exclude_scores
         suggested_artifact_components = self.suggested_artifact_components
 
-        print('suggested channels to reject (selection="auto"): ', suggested_artifact_components)
+        print(('suggested channels to reject (selection="auto"): ', suggested_artifact_components))
 
         print('To change the component selection, specify select=[...] (component numbers) or select=N (top-N) and run this command again!')
 
@@ -694,20 +700,20 @@ class Pipeline(object):
         elif isinstance(selection, list):
             selection = selection
         else:
-            print('ERROR: unsupported value for "selection":', selection)
+            print(('ERROR: unsupported value for "selection":', selection))
             selection = []
 
         # IMPORTANT: due to a + operation meant to concatenate lists, ica.excluded and eog_inds must be lists, not ndarrays
         # see _pick_sources() in ica.py, line 1160
         selection = sorted(list(selection))
         ica.plot_scores(scores, exclude=selection, title='Artifact Component Scores')
-        print('current selection:', selection)
+        print(('current selection:', selection))
 
         # self.selected_artifact_components = selection
 
 
     def exclude_ica_components(self, selection):
-        print('excluding ICA components: ', selection)
+        print(('excluding ICA components: ', selection))
         self.ica.exclude = selection
 
 
@@ -724,7 +730,7 @@ class Pipeline(object):
         elif mode == 'raw':
             data = self.raw
         else:
-            print('ERROR: Unsupported mode:', mode)
+            print(('ERROR: Unsupported mode:', mode))
 
         if highlight == 'excluded':
             highlight = self.ica.exclude
@@ -810,7 +816,7 @@ class Pipeline(object):
         elif mode == 'eog':
             data = self.eog_epochs
         else:
-            print('ERROR: unsupported mode:', mode)
+            print(('ERROR: unsupported mode:', mode))
 
         sources = ica._transform_epochs(data, concatenate=False)
     #     print sources.shape

@@ -24,7 +24,7 @@ def decode_event_id(event_id):
     if event_id < 1000:
         stimulus_id = event_id / 10
         condition = event_id % 10
-        print(f"stimulus id: {stimulus_id}")
+        
         return stimulus_id, condition
     else:
         return event_id
@@ -68,7 +68,7 @@ def generate_beat_events(trial_events,                  # base events as stored 
     ## helper function to add a single beat event
     def add_beat_event(etime, stimulus_id, condition, beat_count, cue=False):
         etype = beat_event_id_generator(stimulus_id, condition, cue, beat_count)
-        beat_events.append([etime, 0, etype]))
+        beat_events.append([etime, 0, etype])
 
     ## helper function to add a batch of beat events
     def add_beat_events(etimes, stimulus_id, condition, cue=False):
@@ -87,8 +87,7 @@ def generate_beat_events(trial_events,                  # base events as stored 
             continue
 
         stimulus_id, condition = decode_event_id(etype)
-        print(f"condition {condition}")
-        print(f"stimulus id {stimulus_id}")
+        stimulus_id = int(stimulus_id)
 
         if stimulus_id in exclude_stimulus_ids or condition in exclude_condition_ids:
             continue  # skip excluded
@@ -101,13 +100,11 @@ def generate_beat_events(trial_events,                  # base events as stored 
                 trial_start = next_event[0]
 
         if condition < 3: # cued
-            stimulus_id = 1
-            print(f"This is the length of the cue: " + meta[stimulus_id]["length_with_cue"])
             offset = sr * meta[stimulus_id]['length_of_cue']
 
             if include_cue_beats:
                 cue_beat_times = trial_start + np.floor(sr * cue_beats[stimulus_id])
-                cue_beat_times = cue_beat_times[:num_cue_beats[stimulus_id]]  # truncate at num_cue_beats
+                cue_beat_times = cue_beat_times[:int(num_cue_beats[int(stimulus_id)])]  # truncate at num_cue_beats
                 cue_beat_times = np.asarray(cue_beat_times, dtype=float)
     
                 add_beat_events(cue_beat_times, stimulus_id, condition, cue=True)
@@ -248,5 +245,5 @@ def remove_overlapping_events(events, tmin, tmax, sfreq):
             filtered.append(event)
             last_end = event[0] + tmin + sample_len
     filtered = np.asarray(filtered)
-    print('kept {} of {} events'.format(len(filtered), len(events)))
+    print(('kept {} of {} events'.format(len(filtered), len(events))))
     return filtered

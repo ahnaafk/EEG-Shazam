@@ -13,7 +13,7 @@ from constants import STIMULUS_IDS
 DEFAULT_VERSION = 1
 
 def get_data_root(): 
-    path = "C:/Users/ahnaa/tks/create/eeg/preprocessing/notebooks"
+    path = "/Users/ahnaaf/Documents/tks/EEG-Shazam/eeg/preprocessing/notebooks"
 
     return path
 
@@ -83,10 +83,7 @@ def load_stimuli_metadata(data_root=None, version=None, verbose=None):
 
         if version == 2:
             meta[stimulus_id]['bpm'] = meta[stimulus_id]['cue_bpm'] # use cue bpm
-        print("this is the metadata thing", meta[stimulus_id])
     return meta
-    
-load_stimuli_metadata()
 
 def save_beat_times(beats, stimulus_id, cue=False, data_root=None, offset=None, overwrite=False, version=None):
 
