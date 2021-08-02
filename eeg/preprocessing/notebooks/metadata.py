@@ -13,7 +13,9 @@ from constants import STIMULUS_IDS
 DEFAULT_VERSION = 1
 
 def get_data_root(): 
-    path = "/Users/ahnaaf/Documents/tks/EEG-Shazam/eeg/preprocessing/notebooks"
+    path = "/Users/ahnaaf/Documents/tks/EEG-Shazam/eeg/preprocessing/notebooks" #mac
+    #path = "C:/Users/ahnaa/tks/create/eeg/preprocessing/notebooks" #windows
+
 
     return path
 

@@ -16,18 +16,13 @@ from mne.preprocessing import ICA, read_ica
 from mne.viz.topomap import plot_topomap
 
 from biosemi64 import Biosemi64Layout
-from metadata import get_stimuli_version, load_stimuli_metadata, ensure_parent_dir_exists
+from metadata import get_stimuli_version, load_stimuli_metadata, ensure_parent_dir_exists, get_data_root
 from events import merge_trial_and_audio_onsets, generate_beat_events, simple_beat_event_id_generator,  decode_event_id
 from viz import plot_ica_overlay_evoked
 from resample import fast_resample_mne
 
 RAW_EOG_CHANNELS = ['EXG1', 'EXG2', 'EXG3', 'EXG4']
 MASTOID_CHANNELS = ['EXG5', 'EXG6']
-
-def get_data_root(): 
-    path = "/Users/ahnaaf/Documents/tks/EEG-Shazam/eeg/preprocessing/notebooks"
-
-    return path
 
 
 def load_raw_info(subject,
@@ -452,6 +447,12 @@ class Pipeline(object):
 
         self.beat_epochs = beat_epochs
 
+    def plot_events_raw(self):
+        
+        raw = self.raw
+        events = self.trial_events
+
+        raw.plot(events=events)
 
     # ## compute EOG epochs before downsampling
     def find_eog_events(self, verbose=None):
