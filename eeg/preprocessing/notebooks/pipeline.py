@@ -209,14 +209,19 @@ class Pipeline(object):
 
     def load_raw(self, verbose=None, interpolate_bad_channels=False, reference_mastoids=True):
         mne_data_root = os.path.join(self.data_root, 'mne')
-        self.raw = load_raw(self.subject, mne_data_root=mne_data_root,
+        raw = load_raw(self.subject, mne_data_root=mne_data_root,
                             interpolate_bad_channels=interpolate_bad_channels,
                             reference_mastoids=reference_mastoids,
                             verbose=verbose)
+        raw.set_montage(montage="standard_1020") # call this after reading the data
+
+        self.raw = raw
         self.eeg_picks = mne.pick_types(self.raw.info, meg=False, eeg=True, eog=False, stim=False, exclude=[])
+
 
         self.filtered = False
         self.downsampled = False
+        
 
 
     def plot_raw(self):
@@ -484,6 +489,15 @@ class Pipeline(object):
 
     ###################### down-sampling - this will change raw ######################
 
+    def alt_downsample(self):
+
+        sfreq = 64        
+
+        self.raw.resample(sfreq=sfreq)
+        self.eog_epochs.resample(sfreq=sfreq)
+        self.beat_epochs.resample(sfreq=sfreq)
+
+
     def downsample(self):
         raw = self.raw
         sfreq = self.downsample_sfreq
@@ -523,7 +537,6 @@ class Pipeline(object):
 
     def check_resampled_trial_events(self, plot=True, verbose=None):
 
-        assert self.downsampled is True
         raw = self.raw
         trial_event_times = self.trial_event_times
 
@@ -541,6 +554,7 @@ class Pipeline(object):
         diff = resampled_trial_event_times - trial_event_times
         print(('event onset jitter (min, mean, max):'), diff.min(), diff.mean(), diff.max())
         diff = np.asarray(diff*1000, dtype=int)
+        print('pp popo')
 
         if verbose:
             for i,event in enumerate(resampled_trial_events):
@@ -554,11 +568,11 @@ class Pipeline(object):
 
     # override to change ICA behavior
     def _get_ica_data(self):
-        # return self.raw       # fit to raw data
-        return self.beat_epochs # fit to epochs
+        # return self.raw # fit to raw data
+        return self.beat_epochs  #fit to epochs     
 
 
-    def compute_ica(self, method='extended-infomax', random_seed=42, verbose=None):
+    def compute_ica(self, random_seed=42, verbose=None):
 
         data = self._get_ica_data()
         random_state = np.random.RandomState(random_seed)
@@ -570,8 +584,9 @@ class Pipeline(object):
         # We pass a float value between 0 and 1 to select n_components based on the
         # percentage of variance explained by the PCA components.
 
+
         # ica = ICA(n_components=0.95, method='fastica', random_state=random_state) # capture 95% of variance
-        ica = ICA(n_components=1.0, method=method, random_state=random_state, verbose=verbose) # capture full variance
+        ica = mne.preprocessing.ICA(n_components=0.99, random_state=random_state, verbose=verbose) # capture full variance
         # ica = ICA(n_components=20, method='fastica', random_state=random_state)
 
         # tstep = Length of data chunks for artifact rejection in seconds.
